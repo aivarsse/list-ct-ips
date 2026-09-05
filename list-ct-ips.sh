@@ -8,9 +8,9 @@ LIST=$(pct list) || exit 1
 printf "%-6s %-20s %-10s %s\n" CTID HOSTNAME STATUS IP
 printf "%-6s %-20s %-10s %s\n" ---- -------- ------ --
 
-for CTID in $(awk 'NR>1 {print $1}' <<<"$LIST"); do
+while read -r CTID STATUS REST; do
+    [[ "$CTID" =~ ^[0-9]+$ ]] || continue
     CFG=$(pct config "$CTID" 2>/dev/null) || continue
-    STATUS=$(pct status "$CTID" 2>/dev/null | awk '{print $2}')
     NAME=$(awk -F': ' '/^hostname:/ {print $2}' <<<"$CFG")
 
     IP=$(grep -E '^net[0-9]+:' <<<"$CFG" |
@@ -22,4 +22,4 @@ for CTID in $(awk 'NR>1 {print $1}' <<<"$LIST"); do
             paste -sd, -)
 
     printf "%-6s %-20s %-10s %s\n" "$CTID" "${NAME:--}" "${STATUS:-unknown}" "${IP:--}"
-done
+done <<<"$LIST"
